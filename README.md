@@ -40,7 +40,7 @@ A visual agenda builder for service design workshops. Plan single or multi-day w
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/workshop-planner.git
+git clone https://github.com/pimpalaputty/workshop-planner.git
 cd workshop-planner
 
 # Install dependencies
@@ -63,7 +63,7 @@ npm start
 
 The easiest way to deploy is with [Vercel](https://vercel.com):
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/YOUR_USERNAME/workshop-planner)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/pimpalaputty/workshop-planner)
 
 No environment variables or database setup required — the app runs entirely in the browser using localStorage.
 
