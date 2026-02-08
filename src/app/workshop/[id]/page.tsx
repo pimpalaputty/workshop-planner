@@ -484,45 +484,45 @@ export default function WorkshopEditorPage({ params }: { params: Promise<{ id: s
       >
         {/* Agenda columns */}
         <div className="mx-auto flex w-fit gap-4 p-4 md:p-6">
-            {workshop.days.map((day, index) => (
-              <motion.div
-                key={day.id}
-                className="flex min-w-[300px] max-w-[480px] flex-1 md:min-w-[350px]"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.1 }}
-              >
-                <DayColumn
-                  day={day}
-                  dayIndex={index}
-                  totalDays={workshop.days.length}
-                  insertAtIndex={insertIndicator?.dayId === day.id ? insertIndicator.index : null}
-                  onAddItem={() => setActiveDayForAdd(day.id)}
-                  onEditItem={(item) => setEditingItem({ dayId: day.id, item })}
-                  onDeleteItem={(itemId) => removeItem(day.id, itemId)}
-                  onResizeItem={(itemId, dur) => handleResizeItem(day.id, itemId, dur)}
-                  onDeleteDay={() => removeDay(day.id)}
-                  onUpdateStartTime={(t) => updateDay(day.id, { startTime: t })}
-                />
-              </motion.div>
-            ))}
-
-            {/* Add Day button — appears as a slim column after the last day */}
+          {workshop.days.map((day, index) => (
             <motion.div
-              className="flex min-w-[120px] shrink-0 flex-col"
+              key={day.id}
+              className="flex min-w-[300px] max-w-[480px] flex-1 md:min-w-[350px]"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3, delay: workshop.days.length * 0.1 }}
+              transition={{ duration: 0.3, delay: index * 0.1 }}
             >
-              <button
-                onClick={addDay}
-                className="flex h-full items-center justify-center rounded-xl border border-dashed border-white/10 px-6 text-sm text-muted-foreground transition-all hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
-              >
-                <Plus className="mr-1.5 h-4 w-4" />
-                Add Day
-              </button>
+              <DayColumn
+                day={day}
+                dayIndex={index}
+                totalDays={workshop.days.length}
+                insertAtIndex={insertIndicator?.dayId === day.id ? insertIndicator.index : null}
+                onAddItem={() => setActiveDayForAdd(day.id)}
+                onEditItem={(item) => setEditingItem({ dayId: day.id, item })}
+                onDeleteItem={(itemId) => removeItem(day.id, itemId)}
+                onResizeItem={(itemId, dur) => handleResizeItem(day.id, itemId, dur)}
+                onDeleteDay={() => removeDay(day.id)}
+                onUpdateStartTime={(t) => updateDay(day.id, { startTime: t })}
+              />
             </motion.div>
-          </div>
+          ))}
+
+          {/* Add Day button — appears as a slim column after the last day */}
+          <motion.div
+            className="flex min-w-[120px] shrink-0 flex-col"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3, delay: workshop.days.length * 0.1 }}
+          >
+            <button
+              onClick={addDay}
+              className="flex h-full items-center justify-center rounded-xl border border-dashed border-white/10 px-6 text-sm text-muted-foreground transition-all hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
+            >
+              <Plus className="mr-1.5 h-4 w-4" />
+              Add Day
+            </button>
+          </motion.div>
+        </div>
 
         {/* Bottom-sheet picker (for a specific day's "Add Activity")
              Lives INSIDE DndContext so library items are draggable from here too.
@@ -538,7 +538,7 @@ export default function WorkshopEditorPage({ params }: { params: Promise<{ id: s
             onClick={() => setActiveDayForAdd(null)}
           >
             <motion.div
-              className="absolute bottom-0 left-0 right-0 max-h-[70vh] overflow-hidden rounded-t-2xl border-t border-white/10 bg-card p-4"
+              className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-lg max-h-[70vh] overflow-hidden rounded-t-2xl border-t border-white/10 bg-card p-4"
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}

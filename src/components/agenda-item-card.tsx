@@ -77,7 +77,7 @@ export function AgendaItemCard({ item, startTime, onEdit, onDelete, onResize }: 
       if (!onResize) return
       e.preventDefault()
       e.stopPropagation()
-      ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
+        ; (e.target as HTMLElement).setPointerCapture(e.pointerId)
 
       setIsResizing(true)
       const startY = e.clientY
@@ -133,14 +133,13 @@ export function AgendaItemCard({ item, startTime, onEdit, onDelete, onResize }: 
       {/* Content row */}
       <div className="flex min-h-0 flex-1 items-start overflow-hidden pl-3">
         {/* Title + duration */}
-        <div className="min-w-0 flex-1 py-1 px-1">
-          <span className={cn(
-            'text-sm leading-tight text-foreground',
-            cardHeight <= 36 ? 'line-clamp-1' : 'line-clamp-3',
-          )}>
-            {item.title}
-          </span>
-          <span className="mt-0.5 block text-xs text-muted-foreground">{displayDuration}m</span>
+        <div className="min-w-0 flex-1 flex flex-col justify-center py-1 px-1 h-full">
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="text-sm font-medium leading-tight text-foreground truncate">
+              {item.title}
+            </span>
+            <span className="text-[10px] text-muted-foreground whitespace-nowrap">{displayDuration}m</span>
+          </div>
         </div>
 
         {/* Delete button — hidden on mobile, visible on desktop hover */}

@@ -40,6 +40,8 @@ function DraggableLibraryItem({
     data: { template: item },
   })
 
+  const shortDesc = typeof item.description === 'string' ? item.description : item.description?.short
+
   return (
     <div
       ref={setNodeRef}
@@ -54,7 +56,10 @@ function DraggableLibraryItem({
         className="h-2 w-2 shrink-0 rounded-full"
         style={{ backgroundColor: catColor }}
       />
-      <span className="min-w-0 flex-1 truncate text-sm text-foreground">{item.title}</span>
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-sm text-foreground leading-tight">{item.title}</div>
+        {shortDesc && <div className="truncate text-[10px] text-muted-foreground opacity-70">{shortDesc}</div>}
+      </div>
       <span className="shrink-0 text-xs text-muted-foreground">{item.defaultDuration}m</span>
     </div>
   )
@@ -71,10 +76,11 @@ export function ActivityLibraryContent({ onSelectItem }: ActivityLibraryContentP
   const [selectedCategory, setSelectedCategory] = useState<ActivityCategory | 'all'>('all')
 
   const filteredItems = AGENDA_ITEM_LIBRARY.filter(item => {
+    const descString = typeof item.description === 'string' ? item.description : item.description?.short
     const matchesSearch =
       search === '' ||
       item.title.toLowerCase().includes(search.toLowerCase()) ||
-      item.description?.toLowerCase().includes(search.toLowerCase())
+      descString?.toLowerCase().includes(search.toLowerCase())
     const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory
     return matchesSearch && matchesCategory
   })

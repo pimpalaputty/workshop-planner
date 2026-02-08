@@ -24,7 +24,9 @@ export function EditItemSheet({ item, open, onOpenChange, onSave }: EditItemShee
   const [title, setTitle] = useState('')
   const [category, setCategory] = useState<ActivityCategory>('other')
   const [durationMinutes, setDurationMinutes] = useState(15)
-  const [description, setDescription] = useState('')
+  const [shortDescription, setShortDescription] = useState('')
+  const [objectives, setObjectives] = useState('')
+  const [outcomes, setOutcomes] = useState('')
   const [instructions, setInstructions] = useState('')
   const [tools, setTools] = useState<string[]>([])
   const [links, setLinks] = useState<string[]>([])
@@ -36,7 +38,17 @@ export function EditItemSheet({ item, open, onOpenChange, onSave }: EditItemShee
       setTitle(item.title)
       setCategory(item.category)
       setDurationMinutes(item.durationMinutes)
-      setDescription(item.description || '')
+
+      if (typeof item.description === 'string') {
+        setShortDescription(item.description)
+        setObjectives('')
+        setOutcomes('')
+      } else {
+        setShortDescription(item.description?.short || '')
+        setObjectives(item.description?.objectives?.join('\n') || '')
+        setOutcomes(item.description?.outcomes?.join('\n') || '')
+      }
+
       setInstructions(item.instructions || '')
       setTools(item.tools || [])
       setLinks(item.links || [])
@@ -48,7 +60,11 @@ export function EditItemSheet({ item, open, onOpenChange, onSave }: EditItemShee
       title,
       category,
       durationMinutes,
-      description: description || undefined,
+      description: {
+        short: shortDescription,
+        objectives: objectives.split('\n').filter(line => line.trim().length > 0),
+        outcomes: outcomes.split('\n').filter(line => line.trim().length > 0),
+      },
       instructions: instructions || undefined,
       tools: tools.length > 0 ? tools : undefined,
       links: links.length > 0 ? links : undefined,
@@ -83,7 +99,7 @@ export function EditItemSheet({ item, open, onOpenChange, onSave }: EditItemShee
           <SheetTitle className="text-lg">Edit Activity</SheetTitle>
         </SheetHeader>
 
-        <div className="flex flex-col gap-5 overflow-y-auto px-4 pb-24">
+        <div className="flex flex-col gap-5 overflow-y-auto px-4 pb-24 h-[calc(100vh-80px)]">
           {/* Title */}
           <div className="space-y-2">
             <Label className="text-xs text-muted-foreground">Title</Label>
@@ -155,25 +171,49 @@ export function EditItemSheet({ item, open, onOpenChange, onSave }: EditItemShee
 
           <Separator className="bg-white/10" />
 
-          {/* Description */}
+          {/* Short Description */}
           <div className="space-y-2">
-            <Label className="text-xs text-muted-foreground">Description</Label>
+            <Label className="text-xs text-muted-foreground">Short Description</Label>
             <Textarea
-              value={description}
-              onChange={e => setDescription(e.target.value)}
+              value={shortDescription}
+              onChange={e => setShortDescription(e.target.value)}
               className="min-h-[80px] border-white/10 bg-secondary/50"
-              placeholder="What is this activity about?"
+              placeholder="Brief summary..."
             />
           </div>
 
+          {/* Objectives */}
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">Objectives (one per line)</Label>
+            <Textarea
+              value={objectives}
+              onChange={e => setObjectives(e.target.value)}
+              className="min-h-[60px] border-white/10 bg-secondary/50"
+              placeholder="- Understand the problem..."
+            />
+          </div>
+
+          {/* Outcomes */}
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">Outcomes (one per line)</Label>
+            <Textarea
+              value={outcomes}
+              onChange={e => setOutcomes(e.target.value)}
+              className="min-h-[60px] border-white/10 bg-secondary/50"
+              placeholder="- Problem statement defined..."
+            />
+          </div>
+
+          <Separator className="bg-white/10" />
+
           {/* Instructions */}
           <div className="space-y-2">
-            <Label className="text-xs text-muted-foreground">Instructions</Label>
+            <Label className="text-xs text-muted-foreground">Instructions (Markdown)</Label>
             <Textarea
               value={instructions}
               onChange={e => setInstructions(e.target.value)}
-              className="min-h-[80px] border-white/10 bg-secondary/50"
-              placeholder="Step-by-step instructions for the facilitator..."
+              className="min-h-[120px] border-white/10 bg-secondary/50 font-mono text-sm"
+              placeholder="Step-by-step instructions..."
             />
           </div>
 

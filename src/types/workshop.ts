@@ -17,7 +17,11 @@ export interface AgendaItem {
   title: string
   category: ActivityCategory
   durationMinutes: number
-  description?: string
+  description?: {
+    short: string
+    objectives?: string[]
+    outcomes?: string[]
+  }
   instructions?: string
   tools?: string[]
   links?: string[]
@@ -62,7 +66,11 @@ export interface AgendaItemTemplate {
   title: string
   category: ActivityCategory
   defaultDuration: number
-  description?: string
+  description?: {
+    short: string
+    objectives?: string[]
+    outcomes?: string[]
+  }
   instructions?: string
   tools?: string[]
 }
