@@ -9,7 +9,8 @@ import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
-import { Clock, X, Plus, LinkIcon, Wrench } from 'lucide-react'
+import { Switch } from '@/components/ui/switch'
+import { Clock, X, Plus, LinkIcon, Wrench, Pin } from 'lucide-react'
 import { AgendaItem, ActivityCategory, CATEGORIES, getCategoryColor } from '@/types/workshop'
 import { cn } from '@/lib/utils'
 
@@ -30,6 +31,7 @@ export function EditItemSheet({ item, open, onOpenChange, onSave }: EditItemShee
   const [instructions, setInstructions] = useState('')
   const [tools, setTools] = useState<string[]>([])
   const [links, setLinks] = useState<string[]>([])
+  const [isFixed, setIsFixed] = useState(false)
   const [newTool, setNewTool] = useState('')
   const [newLink, setNewLink] = useState('')
 
@@ -52,6 +54,7 @@ export function EditItemSheet({ item, open, onOpenChange, onSave }: EditItemShee
       setInstructions(item.instructions || '')
       setTools(item.tools || [])
       setLinks(item.links || [])
+      setIsFixed(item.isFixed || false)
     }
   }, [item])
 
@@ -68,6 +71,7 @@ export function EditItemSheet({ item, open, onOpenChange, onSave }: EditItemShee
       instructions: instructions || undefined,
       tools: tools.length > 0 ? tools : undefined,
       links: links.length > 0 ? links : undefined,
+      isFixed,
     })
     onOpenChange(false)
   }
@@ -167,6 +171,18 @@ export function EditItemSheet({ item, open, onOpenChange, onSave }: EditItemShee
                 {d}m
               </Button>
             ))}
+          </div>
+
+          {/* Fixed Time toggle */}
+          <div className="flex items-center justify-between rounded-lg border border-white/10 bg-secondary/30 px-3 py-2.5">
+            <div className="flex items-center gap-2">
+              <Pin className="h-4 w-4 text-amber-500" />
+              <div>
+                <Label className="text-sm font-medium">Fixed Time</Label>
+                <p className="text-xs text-muted-foreground">This activity cannot be moved or pushed by resizing</p>
+              </div>
+            </div>
+            <Switch checked={isFixed} onCheckedChange={setIsFixed} />
           </div>
 
           <Separator className="bg-white/10" />

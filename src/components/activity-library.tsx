@@ -65,6 +65,47 @@ function DraggableLibraryItem({
   )
 }
 
+// ── Quick Add item for Placeholder and Custom Activity ──
+function QuickAddItem({
+  title,
+  description,
+  duration,
+  isPlaceholder,
+  onSelect,
+}: {
+  title: string
+  description: string
+  duration: number
+  isPlaceholder?: boolean
+  onSelect: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      className={cn(
+        'flex w-full cursor-pointer items-center gap-2 rounded-lg border px-2 py-1.5 text-left transition-all',
+        isPlaceholder
+          ? 'border-dashed border-white/20 bg-[repeating-linear-gradient(135deg,transparent,transparent_4px,rgba(255,255,255,0.02)_4px,rgba(255,255,255,0.02)_8px)] hover:border-primary/30 hover:bg-primary/5'
+          : 'border-transparent hover:border-white/10 hover:bg-secondary/50'
+      )}
+    >
+      <div className={cn(
+        "h-2 w-2 shrink-0 rounded-full",
+        isPlaceholder ? "bg-muted-foreground/40" : "bg-muted-foreground/60"
+      )} />
+      <div className="min-w-0 flex-1">
+        <div className={cn(
+          "truncate text-sm leading-tight",
+          isPlaceholder ? "text-muted-foreground/70 italic" : "text-foreground"
+        )}>{title}</div>
+        <div className="truncate text-[10px] text-muted-foreground opacity-70">{description}</div>
+      </div>
+      <span className="shrink-0 text-xs text-muted-foreground">{duration}m</span>
+    </button>
+  )
+}
+
 // ── Shared list content ──
 // Always renders draggable items — must live inside a DndContext.
 interface ActivityLibraryContentProps {
@@ -148,6 +189,39 @@ export function ActivityLibraryContent({ onSelectItem }: ActivityLibraryContentP
       {/* Scrollable items list */}
       <div className="flex-1 overflow-y-auto px-1 pb-4">
         <div className="space-y-3">
+          {/* Quick Add section - always visible */}
+          <div>
+            <h4 className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Quick Add
+            </h4>
+            <div className="space-y-0.5">
+              {/* Placeholder */}
+              <QuickAddItem
+                title="Placeholder"
+                description="Empty time block"
+                duration={15}
+                isPlaceholder
+                onSelect={() => onSelectItem({
+                  title: 'Placeholder',
+                  category: 'placeholder',
+                  defaultDuration: 15,
+                  description: { short: 'Empty time block' },
+                })}
+              />
+              {/* Custom Activity */}
+              <QuickAddItem
+                title="Custom Activity"
+                description="Create your own"
+                duration={15}
+                onSelect={() => onSelectItem({
+                  title: 'New Activity',
+                  category: 'other',
+                  defaultDuration: 15,
+                })}
+              />
+            </div>
+          </div>
+
           {Object.entries(grouped).map(([category, items]) => {
             const catColor = getCategoryColor(category as ActivityCategory)
             const catInfo = CATEGORIES.find(c => c.id === category)

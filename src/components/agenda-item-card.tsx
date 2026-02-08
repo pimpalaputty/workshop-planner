@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Trash2 } from 'lucide-react'
+import { Trash2, Pin } from 'lucide-react'
 import { AgendaItem, getCategoryColor } from '@/types/workshop'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -20,12 +20,13 @@ function heightForDuration(minutes: number) {
 interface AgendaItemCardProps {
   item: AgendaItem
   startTime: string
+  maxDuration?: number // Maximum duration allowed before hitting a fixed item
   onEdit: (item: AgendaItem) => void
   onDelete: (itemId: string) => void
   onResize?: (itemId: string, newDuration: number) => void
 }
 
-export function AgendaItemCard({ item, startTime, onEdit, onDelete, onResize }: AgendaItemCardProps) {
+export function AgendaItemCard({ item, startTime, maxDuration, onEdit, onDelete, onResize }: AgendaItemCardProps) {
   const {
     attributes,
     listeners,
@@ -33,7 +34,7 @@ export function AgendaItemCard({ item, startTime, onEdit, onDelete, onResize }: 
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: item.id })
+  } = useSortable({ id: item.id, disabled: item.isFixed })
 
   const [isResizing, setIsResizing] = useState(false)
   const [previewDuration, setPreviewDuration] = useState<number | null>(null)
@@ -87,7 +88,11 @@ export function AgendaItemCard({ item, startTime, onEdit, onDelete, onResize }: 
         const dy = me.clientY - startY
         const rawMinutes = startDuration + dy / PX_PER_MIN
         // snap to nearest STEP, minimum STEP
-        const snapped = Math.max(STEP, Math.round(rawMinutes / STEP) * STEP)
+        let snapped = Math.max(STEP, Math.round(rawMinutes / STEP) * STEP)
+        // Respect maxDuration constraint (from fixed items)
+        if (maxDuration !== undefined) {
+          snapped = Math.min(snapped, maxDuration)
+        }
         setPreviewDuration(snapped)
       }
 
@@ -103,7 +108,7 @@ export function AgendaItemCard({ item, startTime, onEdit, onDelete, onResize }: 
       document.addEventListener('pointermove', onMove)
       document.addEventListener('pointerup', onUp)
     },
-    [item.id, item.durationMinutes, onResize],
+    [item.id, item.durationMinutes, maxDuration, onResize],
   )
 
   // keep a ref so the onUp closure always reads the latest preview
@@ -118,26 +123,43 @@ export function AgendaItemCard({ item, startTime, onEdit, onDelete, onResize }: 
       {...listeners}
       onClick={handleClick}
       className={cn(
-        'group relative flex cursor-grab flex-col overflow-hidden rounded-lg border border-white/10 bg-secondary/60 transition-colors active:cursor-grabbing',
+        'group relative flex flex-col overflow-hidden rounded-lg border transition-colors',
+        item.isPlaceholder
+          ? 'cursor-grab border-dashed border-white/20 bg-[repeating-linear-gradient(135deg,transparent,transparent_4px,rgba(255,255,255,0.03)_4px,rgba(255,255,255,0.03)_8px)] active:cursor-grabbing'
+          : item.isFixed
+            ? 'cursor-default border-amber-500/30 bg-amber-500/5'
+            : 'cursor-grab border-white/10 bg-secondary/60 active:cursor-grabbing',
         isDragging && 'z-50 opacity-50 shadow-lg shadow-primary/20',
         isResizing && 'z-50 border-primary/40',
-        !isDragging && !isResizing && 'hover:border-white/20 hover:bg-secondary/80',
+        !isDragging && !isResizing && !item.isFixed && !item.isPlaceholder && 'hover:border-white/20 hover:bg-secondary/80',
+        !isDragging && !isResizing && item.isPlaceholder && 'hover:border-primary/30 hover:bg-primary/5',
       )}
     >
-      {/* Category color bar */}
-      <div
-        className="absolute left-0 top-0 h-full w-1 rounded-l-lg"
-        style={{ backgroundColor: categoryColor }}
-      />
+      {/* Category color bar — hidden for placeholders */}
+      {!item.isPlaceholder && (
+        <div
+          className="absolute left-0 top-0 h-full w-1 rounded-l-lg"
+          style={{ backgroundColor: categoryColor }}
+        />
+      )}
 
       {/* Content row */}
-      <div className="flex min-h-0 flex-1 items-start overflow-hidden pl-3">
+      <div className={cn(
+        "flex min-h-0 flex-1 items-start overflow-hidden",
+        item.isPlaceholder ? "pl-2" : "pl-3"
+      )}>
         {/* Title + duration */}
         <div className="min-w-0 flex-1 flex flex-col justify-center py-1 px-1 h-full">
           <div className="flex items-baseline justify-between gap-2">
-            <span className="text-sm font-medium leading-tight text-foreground truncate">
-              {item.title}
-            </span>
+            <div className="flex items-center gap-1.5 min-w-0">
+              {item.isFixed && <Pin className="h-3 w-3 shrink-0 text-amber-500" />}
+              <span className={cn(
+                "text-sm font-medium leading-tight truncate",
+                item.isPlaceholder ? "text-muted-foreground/60 italic" : "text-foreground"
+              )}>
+                {item.title}
+              </span>
+            </div>
             <span className="text-[10px] text-muted-foreground whitespace-nowrap">{displayDuration}m</span>
           </div>
         </div>

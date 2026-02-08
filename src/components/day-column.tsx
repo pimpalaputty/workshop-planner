@@ -249,18 +249,35 @@ export function DayColumn({
               showIndicator ? <InsertionIndicator /> : <EmptyDayPlaceholder />
             ) : (
               <>
-                {day.items.map((item, index) => (
-                  <div key={item.id} className="relative z-[1]">
-                    {showIndicator && insertAtIndex === index && <InsertionIndicator />}
-                    <AgendaItemCard
-                      item={item}
-                      startTime={getItemStartTime(index)}
-                      onEdit={onEditItem}
-                      onDelete={onDeleteItem}
-                      onResize={onResizeItem}
-                    />
-                  </div>
-                ))}
+                {day.items.map((item, index) => {
+                  // Calculate maxDuration: time until next fixed item
+                  let maxDuration: number | undefined = undefined
+                  for (let i = index + 1; i < day.items.length; i++) {
+                    if (day.items[i].isFixed) {
+                      // Sum durations of items between current and the fixed one
+                      let availableMinutes = item.durationMinutes
+                      for (let j = index + 1; j < i; j++) {
+                        availableMinutes += day.items[j].durationMinutes
+                      }
+                      maxDuration = availableMinutes
+                      break
+                    }
+                  }
+
+                  return (
+                    <div key={item.id} className="relative z-[1]">
+                      {showIndicator && insertAtIndex === index && <InsertionIndicator />}
+                      <AgendaItemCard
+                        item={item}
+                        startTime={getItemStartTime(index)}
+                        maxDuration={maxDuration}
+                        onEdit={onEditItem}
+                        onDelete={onDeleteItem}
+                        onResize={onResizeItem}
+                      />
+                    </div>
+                  )
+                })}
                 {showIndicator && insertAtIndex === day.items.length && <InsertionIndicator />}
               </>
             )}

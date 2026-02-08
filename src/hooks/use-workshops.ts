@@ -84,14 +84,47 @@ export function useWorkshopEditor(id: string) {
     save(updated)
   }, [workshop, save])
 
-  // Remove an agenda item
+  // Helper: create a placeholder item
+  const createPlaceholder = (durationMinutes: number): AgendaItem => ({
+    id: generateId(),
+    title: 'Placeholder',
+    category: 'placeholder',
+    durationMinutes,
+    description: { short: 'Empty time block' },
+    isPlaceholder: true,
+  })
+
+  // Remove an agenda item — inserts placeholder if deleting before a fixed item
   const removeItem = useCallback((dayId: string, itemId: string) => {
     if (!workshop) return
+
+    const day = workshop.days.find(d => d.id === dayId)
+    if (!day) return
+
+    const itemIndex = day.items.findIndex(i => i.id === itemId)
+    const itemToRemove = day.items[itemIndex]
+    if (!itemToRemove) return
+
+    // Check if there's a fixed item after the item being removed
+    let needsPlaceholder = false
+    for (let i = itemIndex + 1; i < day.items.length; i++) {
+      if (day.items[i].isFixed) {
+        needsPlaceholder = true
+        break
+      }
+    }
+
     const updated = {
       ...workshop,
-      days: workshop.days.map(day => {
-        if (day.id !== dayId) return day
-        return { ...day, items: day.items.filter(i => i.id !== itemId) }
+      days: workshop.days.map(d => {
+        if (d.id !== dayId) return d
+        const newItems = d.items.filter(i => i.id !== itemId)
+        // Insert placeholder if needed (only for non-placeholder items)
+        if (needsPlaceholder && !itemToRemove.isPlaceholder) {
+          const placeholder = createPlaceholder(itemToRemove.durationMinutes)
+          newItems.splice(itemIndex, 0, placeholder)
+        }
+        return { ...d, items: newItems }
       }),
     }
     save(updated)

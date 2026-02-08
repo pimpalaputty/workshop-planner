@@ -181,6 +181,7 @@ export default function WorkshopEditorPage({ params }: { params: Promise<{ id: s
         description: template.description,
         instructions: template.instructions,
         tools: template.tools,
+        isPlaceholder: template.category === 'placeholder',
       }
       addItem(targetDayId, item)
       setActiveDayForAdd(null)
@@ -301,9 +302,21 @@ export default function WorkshopEditorPage({ params }: { params: Promise<{ id: s
 
       let targetDayId: string | null = null
       let insertIndex: number | undefined
+      let inheritedDuration: number | undefined
 
-      // Prefer the tracked indicator position for accuracy
-      if (indicator) {
+      // Check if dropping on a placeholder — inherit its duration and replace it
+      const droppedOnItem = workshop.days.flatMap(d => d.items).find(i => i.id === overId)
+      if (droppedOnItem?.isPlaceholder) {
+        const dayContaining = findDayContainingItem(overId)
+        if (dayContaining) {
+          targetDayId = dayContaining.id
+          insertIndex = dayContaining.items.findIndex(i => i.id === overId)
+          inheritedDuration = droppedOnItem.durationMinutes
+          // Remove the placeholder
+          removeItem(dayContaining.id, overId)
+        }
+      } else if (indicator) {
+        // Prefer the tracked indicator position for accuracy
         targetDayId = indicator.dayId
         insertIndex = indicator.index
       } else {
@@ -328,10 +341,11 @@ export default function WorkshopEditorPage({ params }: { params: Promise<{ id: s
         id: generateId(),
         title: template.title,
         category: template.category,
-        durationMinutes: template.defaultDuration,
+        durationMinutes: inheritedDuration ?? template.defaultDuration,
         description: template.description,
         instructions: template.instructions,
         tools: template.tools,
+        isPlaceholder: template.category === 'placeholder',
       }
       addItem(targetDayId, newItem, insertIndex)
       return

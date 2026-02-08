@@ -9,6 +9,7 @@ export type ActivityCategory =
   | 'break'
   | 'presentation'
   | 'ice-breaker'
+  | 'placeholder'
   | 'other'
 
 // Basic building block of an agenda
@@ -26,6 +27,7 @@ export interface AgendaItem {
   tools?: string[]
   links?: string[]
   isFixed?: boolean
+  isPlaceholder?: boolean
 }
 
 // A single day's structure in a workshop
@@ -89,6 +91,7 @@ export const CATEGORIES: CategoryInfo[] = [
   { id: 'break', label: 'Break', color: 'var(--break)' },
   { id: 'presentation', label: 'Presentation', color: 'var(--presentation)' },
   { id: 'ice-breaker', label: 'Ice-breaker', color: 'var(--ice-breaker)' },
+  { id: 'placeholder', label: 'Placeholder', color: 'var(--muted)' },
   { id: 'other', label: 'Other', color: 'var(--other)' },
 ]
 
