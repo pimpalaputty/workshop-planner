@@ -51,6 +51,13 @@ export interface Workshop {
   updatedAt: string
 }
 
+// Reference to an activity in the library (used in templates)
+// If the activity exists in the library, only title is needed (no overrides)
+// If the activity doesn't exist in the library, full item data is provided
+export type TemplateAgendaItemReference =
+  | { title: string } // Simple reference - activity must exist in library
+  | Omit<AgendaItem, 'id'> // Full item data for activities not in library
+
 // Template structure (similar to workshop but without dates)
 export interface WorkshopTemplate {
   id: string
@@ -59,7 +66,7 @@ export interface WorkshopTemplate {
   defaultStartTime: string
   days: {
     dayIndex: number
-    items: Omit<AgendaItem, 'id'>[]
+    items: TemplateAgendaItemReference[]
   }[]
 }
 

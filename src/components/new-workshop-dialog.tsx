@@ -9,7 +9,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { FileText, Calendar, Clock, ArrowRight } from 'lucide-react'
 import { Workshop, WorkshopDay, AgendaItem } from '@/types/workshop'
-import { WORKSHOP_TEMPLATES } from '@/lib/templates'
+import { WORKSHOP_TEMPLATES, templateItemToAgendaItem, findLibraryItemByTitle } from '@/lib/templates'
 import { generateId } from '@/lib/utils'
 import { saveWorkshop } from '@/lib/storage'
 
@@ -55,12 +55,13 @@ export function NewWorkshopDialog({ open, onOpenChange, onCreated }: NewWorkshop
       id: generateId(),
       dateOffset: td.dayIndex,
       startTime: template.defaultStartTime,
-      items: td.items.map(
-        (item): AgendaItem => ({
-          id: generateId(),
+      items: td.items.map((ref): AgendaItem => {
+        const item = templateItemToAgendaItem(ref)
+        return {
           ...item,
-        })
-      ),
+          id: generateId(),
+        }
+      }),
     }))
 
     const workshop: Workshop = {
@@ -138,7 +139,17 @@ export function NewWorkshopDialog({ open, onOpenChange, onCreated }: NewWorkshop
                 {WORKSHOP_TEMPLATES.map(template => {
                   const totalItems = template.days.reduce((acc, d) => acc + d.items.length, 0)
                   const totalMinutes = template.days.reduce(
-                    (acc, d) => acc + d.items.reduce((a, i) => a + i.durationMinutes, 0),
+                    (acc, d) =>
+                      acc +
+                      d.items.reduce((a, ref) => {
+                        // If it's a full item (has category), use its durationMinutes
+                        if ('category' in ref) {
+                          return a + ref.durationMinutes
+                        }
+                        // Otherwise, look it up in library
+                        const libraryItem = findLibraryItemByTitle(ref.title)
+                        return a + (libraryItem?.defaultDuration ?? 30)
+                      }, 0),
                     0
                   )
                   const totalHours = Math.round(totalMinutes / 60 * 10) / 10
