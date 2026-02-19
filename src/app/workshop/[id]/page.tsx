@@ -102,6 +102,9 @@ export default function WorkshopEditorPage({ params }: { params: Promise<{ id: s
   const insertIndicatorRef = useRef<InsertIndicator | null>(null)
   insertIndicatorRef.current = insertIndicator
 
+  // Store active drag data for overlay (library quick-add items use data.template, not index)
+  const activeDragDataRef = useRef<{ template?: AgendaItemTemplate } | null>(null)
+
   // DnD sensors
   // MouseSensor for desktop (activates after 8px movement).
   // TouchSensor for mobile with a longer delay so quick swipes scroll
@@ -201,6 +204,7 @@ export default function WorkshopEditorPage({ params }: { params: Promise<{ id: s
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string)
+    activeDragDataRef.current = event.active.data.current
     setInsertIndicator(null)
     // NOTE: we do NOT unmount the bottom-sheet here — we only hide it via
     // CSS (see render). Unmounting would destroy the DraggableLibraryItem
@@ -276,6 +280,7 @@ export default function WorkshopEditorPage({ params }: { params: Promise<{ id: s
     const { active, over } = event
     const indicator = insertIndicatorRef.current
     setActiveId(null)
+    activeDragDataRef.current = null
     setInsertIndicator(null)
     // Now that the drag is finished we can safely unmount the bottom sheet
     setActiveDayForAdd(null)
@@ -384,6 +389,7 @@ export default function WorkshopEditorPage({ params }: { params: Promise<{ id: s
 
   const handleDragCancel = () => {
     setActiveId(null)
+    activeDragDataRef.current = null
     setInsertIndicator(null)
     setActiveDayForAdd(null)
   }
@@ -403,8 +409,8 @@ export default function WorkshopEditorPage({ params }: { params: Promise<{ id: s
   } | null => {
     if (!activeId) return null
     if (isLibraryDragId(activeId)) {
-      const idx = Number(activeId.split('::')[1])
-      const t = AGENDA_ITEM_LIBRARY[idx]
+      // Prefer template from drag data (covers quick-add Placeholder/Custom and library items)
+      const t = activeDragDataRef.current?.template ?? AGENDA_ITEM_LIBRARY[Number(activeId.split('::')[1])]
       if (!t) return null
       return { title: t.title, duration: t.defaultDuration, category: t.category }
     }

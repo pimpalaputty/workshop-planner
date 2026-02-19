@@ -25,6 +25,10 @@ export function libraryIndexFromDragId(id: string) {
   return Number(id.slice(LIBRARY_PREFIX.length))
 }
 
+// Quick Add items use non-numeric IDs so they don't collide with AGENDA_ITEM_LIBRARY indices
+export const LIBRARY_QUICK_ADD_PLACEHOLDER_ID = `${LIBRARY_PREFIX}placeholder`
+export const LIBRARY_QUICK_ADD_CUSTOM_ID = `${LIBRARY_PREFIX}custom`
+
 // ── Single draggable library row (entire row is the drag handle) ──
 function DraggableLibraryItem({
   item,
@@ -65,29 +69,44 @@ function DraggableLibraryItem({
   )
 }
 
-// ── Quick Add item for Placeholder and Custom Activity ──
-function QuickAddItem({
+// ── Quick Add item for Placeholder and Custom Activity (draggable like library items) ──
+function DraggableQuickAddItem({
+  id,
   title,
   description,
   duration,
   isPlaceholder,
+  template,
   onSelect,
 }: {
+  id: string
   title: string
   description: string
   duration: number
   isPlaceholder?: boolean
+  template: AgendaItemTemplate
   onSelect: () => void
 }) {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id,
+    data: { template },
+  })
+
   return (
-    <button
-      type="button"
+    <div
+      ref={setNodeRef}
+      {...attributes}
+      {...listeners}
+      role="button"
+      tabIndex={0}
       onClick={onSelect}
+      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect() } }}
       className={cn(
-        'flex w-full cursor-pointer items-center gap-2 rounded-lg border px-2 py-1.5 text-left transition-all',
+        'flex w-full cursor-grab items-center gap-2 rounded-lg border px-2 py-1.5 text-left transition-all hover:border-white/10 hover:bg-secondary/50 active:cursor-grabbing',
         isPlaceholder
           ? 'border-dashed border-white/20 bg-[repeating-linear-gradient(135deg,transparent,transparent_4px,rgba(255,255,255,0.02)_4px,rgba(255,255,255,0.02)_8px)] hover:border-primary/30 hover:bg-primary/5'
-          : 'border-transparent hover:border-white/10 hover:bg-secondary/50'
+          : 'border-transparent',
+        isDragging && 'opacity-40',
       )}
     >
       <div className={cn(
@@ -102,7 +121,7 @@ function QuickAddItem({
         <div className="truncate text-[10px] text-muted-foreground opacity-70">{description}</div>
       </div>
       <span className="shrink-0 text-xs text-muted-foreground">{duration}m</span>
-    </button>
+    </div>
   )
 }
 
@@ -196,11 +215,18 @@ export function ActivityLibraryContent({ onSelectItem }: ActivityLibraryContentP
             </h4>
             <div className="space-y-0.5">
               {/* Placeholder */}
-              <QuickAddItem
+              <DraggableQuickAddItem
+                id={LIBRARY_QUICK_ADD_PLACEHOLDER_ID}
                 title="Placeholder"
                 description="Empty time block"
                 duration={15}
                 isPlaceholder
+                template={{
+                  title: 'Placeholder',
+                  category: 'placeholder',
+                  defaultDuration: 15,
+                  description: { short: 'Empty time block' },
+                }}
                 onSelect={() => onSelectItem({
                   title: 'Placeholder',
                   category: 'placeholder',
@@ -209,10 +235,16 @@ export function ActivityLibraryContent({ onSelectItem }: ActivityLibraryContentP
                 })}
               />
               {/* Custom Activity */}
-              <QuickAddItem
+              <DraggableQuickAddItem
+                id={LIBRARY_QUICK_ADD_CUSTOM_ID}
                 title="Custom Activity"
                 description="Create your own"
                 duration={15}
+                template={{
+                  title: 'New Activity',
+                  category: 'other',
+                  defaultDuration: 15,
+                }}
                 onSelect={() => onSelectItem({
                   title: 'New Activity',
                   category: 'other',
